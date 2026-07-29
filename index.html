@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Upkeep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7F6;
+  --panel:#FFFFFF;
+  --ink:#20303A;
+  --ink-soft:#5D6E77;
+  --line:#E1E7E6;
+  --accent:#3E7C6B;      /* verdigris */
+  --accent-soft:#E4EFEB;
+  --danger:#A44A3F;
+  --radius:12px;
+  font-size:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Public Sans',system-ui,sans-serif;
+  min-height:100vh;
+}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 80px}
+
+header{padding:18px 4px 14px}
+h1{
+  font-family:'Newsreader',serif;
+  font-weight:600;
+  font-size:1.9rem;
+  letter-spacing:-.01em;
+}
+.sub{color:var(--ink-soft);font-size:.85rem;margin-top:2px}
+
+/* frequency tabs */
+.tabs{
+  display:flex;gap:0;margin:14px 0 18px;
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--panel);overflow:hidden;
+}
+.tab{
+  flex:1;padding:10px 0;border:none;background:none;cursor:pointer;
+  font:inherit;font-size:.85rem;font-weight:600;color:var(--ink-soft);
+  border-right:1px solid var(--line);
+}
+.tab:last-child{border-right:none}
+.tab.active{background:var(--accent);color:#fff}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* room chips */
+.rooms{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.rooms::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;padding:8px 14px;border-radius:999px;
+  border:1px solid var(--line);background:var(--panel);
+  font:inherit;font-size:.85rem;font-weight:500;color:var(--ink);
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px;
+}
+.chip.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.chip .dot.done{background:var(--accent)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* list */
+.panel{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);margin-top:14px;overflow:hidden;
+}
+.panel-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:16px 18px 12px;border-bottom:1px solid var(--line);
+}
+.panel-head h2{font-family:'Newsreader',serif;font-weight:600;font-size:1.3rem}
+.count{font-size:.78rem;color:var(--ink-soft)}
+.count b{color:var(--accent)}
+
+ul{list-style:none}
+li.chore{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 18px;border-bottom:1px solid var(--line);
+}
+li.chore:last-child{border-bottom:none}
+.checkbox{
+  width:22px;height:22px;flex:0 0 22px;border-radius:6px;
+  border:1.5px solid #B9C4C2;background:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,border-color .15s;
+}
+.checkbox svg{width:13px;height:13px;opacity:0;transition:opacity .15s}
+.checkbox.checked{background:var(--accent);border-color:var(--accent)}
+.checkbox.checked svg{opacity:1}
+.checkbox:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.label{flex:1;font-size:.95rem;transition:color .15s}
+.label.checked{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:#B9C4C2}
+.remove{
+  border:none;background:none;cursor:pointer;color:#C2CCCA;
+  font-size:1.1rem;line-height:1;padding:4px 6px;border-radius:6px;
+}
+.remove:hover{color:var(--danger)}
+.remove:focus-visible{outline:2px solid var(--danger)}
+
+.empty{padding:28px 18px;text-align:center;color:var(--ink-soft);font-size:.9rem}
+
+/* add row */
+.add-row{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:#FAFBFB}
+.add-row input{
+  flex:1;font:inherit;font-size:.9rem;padding:9px 12px;
+  border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+}
+.add-row input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.add-row button{
+  font:inherit;font-size:.85rem;font-weight:600;padding:9px 16px;
+  border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;
+}
+.add-row button:disabled{opacity:.4;cursor:default}
+
+/* room management */
+.room-tools{margin-top:20px;display:flex;gap:8px;flex-wrap:wrap}
+.ghost{
+  font:inherit;font-size:.82rem;font-weight:500;padding:8px 14px;
+  border:1px dashed #B9C4C2;border-radius:999px;background:none;
+  color:var(--ink-soft);cursor:pointer;
+}
+.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.ghost.danger:hover{border-color:var(--danger);color:var(--danger)}
+
+.loading{padding:60px;text-align:center;color:var(--ink-soft)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Home Upkeep</h1>
+    <div class="sub" id="dateline"></div>
+  </header>
+
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="rooms" id="rooms"></div>
+
+  <div class="panel" id="panel">
+    <div class="loading">Loading…</div>
+  </div>
+
+  <div class="room-tools">
+    <button class="ghost" id="addRoom">+ Add room</button>
+    <button class="ghost danger" id="removeRoom">Remove this room</button>
+  </div>
+</div>
+
+<script>
+const FREQS = ["daily","weekly","monthly","yearly"];
+const FREQ_LABELS = {daily:"Daily",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+const KEY = "home-chores-v1";
+
+const DEFAULT_DATA = {
+  rooms: ["Kitchen","Bathroom","Living Room","Bedrooms","Laundry","Garage","Outside"],
+  chores: [
+    // Kitchen
+    c("Kitchen","daily","Wipe counters"),
+    c("Kitchen","daily","Load / run dishwasher"),
+    c("Kitchen","daily","Sweep floor"),
+    c("Kitchen","weekly","Mop floor"),
+    c("Kitchen","weekly","Wipe down appliances"),
+    c("Kitchen","weekly","Toss expired food"),
+    c("Kitchen","monthly","Clean microwave inside"),
+    c("Kitchen","monthly","Wipe cabinet fronts"),
+    c("Kitchen","monthly","Clean sink drain & disposal"),
+    c("Kitchen","yearly","Deep clean oven"),
+    c("Kitchen","yearly","Clean behind fridge & vacuum coils"),
+    // Bathroom
+    c("Bathroom","daily","Wipe sink & counter"),
+    c("Bathroom","weekly","Clean toilet"),
+    c("Bathroom","weekly","Scrub tub / shower"),
+    c("Bathroom","weekly","Mop floor"),
+    c("Bathroom","weekly","Swap towels"),
+    c("Bathroom","monthly","Wash bath mats"),
+    c("Bathroom","monthly","Clear drain hair / slow drains"),
+    c("Bathroom","yearly","Re-caulk & inspect grout"),
+    c("Bathroom","yearly","Check under-sink for leaks"),
+    // Living Room
+    c("Living Room","daily","Quick pickup / reset"),
+    c("Living Room","weekly","Vacuum"),
+    c("Living Room","weekly","Dust surfaces"),
+    c("Living Room","monthly","Dust ceiling fan & vents"),
+    c("Living Room","monthly","Wash blankets / throw covers"),
+    c("Living Room","yearly","Clean windows inside & out"),
+    c("Living Room","yearly","Shampoo carpet / clean couch"),
+    // Bedrooms
+    c("Bedrooms","daily","Make beds"),
+    c("Bedrooms","weekly","Wash sheets"),
+    c("Bedrooms","weekly","Vacuum"),
+    c("Bedrooms","monthly","Dust dressers & nightstands"),
+    c("Bedrooms","yearly","Rotate / flip mattresses"),
+    c("Bedrooms","yearly","Purge closets"),
+    // Laundry
+    c("Laundry","daily","Run a load if full"),
+    c("Laundry","weekly","Wipe machine tops & fold pile"),
+    c("Laundry","monthly","Clean lint from dryer area"),
+    c("Laundry","yearly","Clean dryer vent duct"),
+    c("Laundry","yearly","Inspect washer hoses"),
+    // Garage
+    c("Garage","weekly","Take out trash & recycling bins"),
+    c("Garage","monthly","Sweep floor"),
+    c("Garage","yearly","Full declutter & organize"),
+    c("Garage","yearly","Test garage door safety reverse"),
+    // Outside
+    c("Outside","weekly","Mow / yard pickup (season)"),
+    c("Outside","monthly","Check gutters & downspouts"),
+    c("Outside","yearly","Clean gutters"),
+    c("Outside","yearly","Winterize hose bibs"),
+    c("Outside","yearly","Change furnace filter & HVAC check"),
+  ],
+  // checks: { [choreId]: timestampMs of last check }
+  checks: {}
+};
+
+function c(room,freq,label){
+  return {id: room+"|"+freq+"|"+label, room, freq, label};
+}
+function uid(){return "c"+Date.now()+Math.random().toString(36).slice(2,7);}
+
+let data = null;
+let activeFreq = "daily";
+let activeRoom = null;
+
+// ---- storage adapter ----
+// Writes go to BOTH artifact storage and localStorage (write-through),
+// so data survives even if one backend is broken. Reads prefer whichever
+// copy is newest. If artifact storage errors twice in a row we stop
+// calling it this session (circuit breaker) instead of spamming errors.
+const memStore = {};
+let artifactBroken = false;
+let artifactFails = 0;
+
+function localGet(key){ try{ return localStorage.getItem(key); }catch(e){ return memStore[key] ?? null; } }
+function localSet(key,val){ try{ localStorage.setItem(key,val); }catch(e){ memStore[key]=val; } }
+
+const store = {
+  async get(key){
+    let art = null;
+    if(window.storage?.get && !artifactBroken){
+      try{ const r = await window.storage.get(key); art = r?.value ?? null; }
+      catch(e){ /* missing key or bridge issue — fall back */ }
+    }
+    const loc = localGet(key);
+    // prefer the copy with the newer savedAt stamp
+    const ts = s=>{ try{ return JSON.parse(s).savedAt||0; }catch(e){ return 0; } };
+    if(art && loc) return ts(art) >= ts(loc) ? art : loc;
+    return art ?? loc;
+  },
+  async set(key,val){
+    localSet(key,val); // always keep a local copy first
+    if(window.storage?.set && !artifactBroken){
+      try{
+        await window.storage.set(key,val);
+        artifactFails = 0;
+      }catch(e){
+        artifactFails++;
+        if(artifactFails >= 2) artifactBroken = true; // stop trying this session
+      }
+    }
+    return true;
+  }
+};
+
+// ---- period logic: a check counts only if inside the current period ----
+function periodStart(freq, now=new Date()){
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if(freq==="daily") return d.getTime();
+  if(freq==="weekly"){ // week starts Monday
+    const day = (d.getDay()+6)%7;
+    d.setDate(d.getDate()-day);
+    return d.getTime();
+  }
+  if(freq==="monthly") return new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  return new Date(now.getFullYear(),0,1).getTime();
+}
+function isChecked(chore){
+  const t = data.checks[chore.id];
+  return !!t && t >= periodStart(chore.freq);
+}
+
+// ---- storage ----
+async function load(){
+  try{
+    const v = await store.get(KEY);
+    data = JSON.parse(v);
+    if(!data || !Array.isArray(data.rooms)) throw new Error("bad data");
+  }catch(e){
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    await save();
+  }
+  if(!data.rooms.includes(activeRoom)) activeRoom = data.rooms[0];
+}
+let saveTimer=null;
+function save(){
+  data.savedAt = Date.now();
+  return store.set(KEY, JSON.stringify(data));
+}
+function saveSoon(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(save,300);
+}
+
+// ---- render ----
+const $ = s=>document.querySelector(s);
+
+function render(){
+  renderTabs(); renderRooms(); renderPanel(); renderDateline();
+}
+
+function renderDateline(){
+  const now=new Date();
+  $("#dateline").textContent = now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+}
+
+function renderTabs(){
+  $("#tabs").innerHTML = FREQS.map(f=>
+    `<button class="tab ${f===activeFreq?"active":""}" role="tab" data-f="${f}">${FREQ_LABELS[f]}</button>`
+  ).join("");
+  $("#tabs").querySelectorAll(".tab").forEach(b=>{
+    b.onclick=()=>{activeFreq=b.dataset.f; render();};
+  });
+}
+
+function roomProgress(room){
+  const list = data.chores.filter(x=>x.room===room && x.freq===activeFreq);
+  if(!list.length) return null;
+  const done = list.filter(isChecked).length;
+  return done===list.length;
+}
+
+function renderRooms(){
+  $("#rooms").innerHTML = data.rooms.map(r=>{
+    const done = roomProgress(r);
+    return `<button class="chip ${r===activeRoom?"active":""}" data-r="${esc(r)}">
+      <span class="dot ${done?"done":""}"></span>${esc(r)}</button>`;
+  }).join("");
+  $("#rooms").querySelectorAll(".chip").forEach(b=>{
+    b.onclick=()=>{activeRoom=b.dataset.r; render();};
+  });
+}
+
+function renderPanel(){
+  const list = data.chores.filter(x=>x.room===activeRoom && x.freq===activeFreq);
+  const done = list.filter(isChecked).length;
+  const items = list.length
+    ? `<ul>`+list.map(ch=>{
+        const chk=isChecked(ch);
+        return `<li class="chore">
+          <button class="checkbox ${chk?"checked":""}" data-id="${esc(ch.id)}" aria-label="${chk?"Uncheck":"Check"} ${esc(ch.label)}">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="label ${chk?"checked":""}">${esc(ch.label)}</span>
+          <button class="remove" data-id="${esc(ch.id)}" aria-label="Remove ${esc(ch.label)}">×</button>
+        </li>`;
+      }).join("")+`</ul>`
+    : `<div class="empty">No ${activeFreq} chores in ${esc(activeRoom)} yet. Add one below.</div>`;
+
+  $("#panel").innerHTML = `
+    <div class="panel-head">
+      <h2>${esc(activeRoom)}</h2>
+      <span class="count"><b>${done}</b> of ${list.length} done</span>
+    </div>
+    ${items}
+    <div class="add-row">
+      <input id="newChore" type="text" placeholder="Add a ${activeFreq} chore…" maxlength="80">
+      <button id="addBtn">Add</button>
+    </div>`;
+
+  $("#panel").querySelectorAll(".checkbox").forEach(b=>{
+    b.onclick=()=>{
+      const ch = data.chores.find(x=>x.id===b.dataset.id);
+      if(isChecked(ch)) delete data.checks[ch.id];
+      else data.checks[ch.id]=Date.now();
+      saveSoon(); render();
+    };
+  });
+  $("#panel").querySelectorAll(".remove").forEach(b=>{
+    b.onclick=()=>{
+      data.chores = data.chores.filter(x=>x.id!==b.dataset.id);
+      delete data.checks[b.dataset.id];
+      saveSoon(); render();
+    };
+  });
+  const input=$("#newChore");
+  const add=()=>{
+    const v=input.value.trim();
+    if(!v) return;
+    data.chores.push({id:uid(),room:activeRoom,freq:activeFreq,label:v});
+    input.value="";
+    saveSoon(); render();
+    setTimeout(()=>$("#newChore")?.focus(),0);
+  };
+  $("#addBtn").onclick=add;
+  input.onkeydown=e=>{if(e.key==="Enter")add();};
+}
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+
+// ---- room tools ----
+$("#addRoom").onclick=()=>{
+  const name=prompt("Room name:");
+  if(!name) return;
+  const n=name.trim();
+  if(!n || data.rooms.includes(n)) return;
+  data.rooms.push(n);
+  activeRoom=n;
+  saveSoon(); render();
+};
+$("#removeRoom").onclick=()=>{
+  if(data.rooms.length<=1) return;
+  if(!confirm(`Remove "${activeRoom}" and all its chores?`)) return;
+  data.chores=data.chores.filter(x=>x.room!==activeRoom);
+  data.rooms=data.rooms.filter(r=>r!==activeRoom);
+  activeRoom=data.rooms[0];
+  saveSoon(); render();
+};
+
+// ---- init ----
+load().then(render);
+</script>
+</body>
+</html>
